@@ -1,2 +1,5 @@
-used Spring Boot, Beans, created multiple layers that talk to each other (api layer, service layer, data access layer) used spring boot jpa and postgres as a database
-implemented get, post, put, delete
+Used Spring Boot to create a simple API with get, post, put and delete
+
+Got familiar with Beans, spring boot JPA and Postgres.
+
+Created multiple layers that talk to each other (API Layer, Service Layer, Data Access Layer)
