@@ -1,8 +1,11 @@
 package com.example.demo.student;
 
 import javax.persistence.*;
+import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 //to map the Student class to our database:
 
 @Entity //for hibernate
@@ -91,5 +94,17 @@ public class Student {
                 ", dob=" + dob +
                 ", age=" + age +
                 '}';
+    }
+
+    public static boolean validEmail(String email) {
+        String regex = "^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$";
+
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(email);
+        //if the email doesn't matches the regex
+        if (!matcher.matches()) {
+            return false;
+        }
+        return true;
     }
 }

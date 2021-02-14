@@ -3,6 +3,8 @@ package com.example.demo.student;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
+
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -28,33 +30,48 @@ public class StudentService {
     }
 
     public void addNewStudent(Student student) {
-        Optional<Student> studentOptional = this.studentRepository.findByEmail(student.getEmail());
+        Optional<Student> studentOptional = studentRepository.findByEmail(student.getEmail());
         //if someone tries to add a new student with an already taken email
         if (studentOptional.isPresent()) {
             //should have custom exceptions, but good for now
             throw new IllegalStateException("Email taken.");
         }
 
-        String regex = "^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$";
-
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(student.getEmail());
-        //if the email doesn't matches the regex
-        if (!matcher.matches()) {
+        if (!Student.validEmail(student.getEmail())) {
             throw new IllegalStateException("Invalid Email.");
         }
 
         studentRepository.save(student);
     }
 
-    public void deleteStudent(Long Id) {
-        Optional<Student> studentOptional = this.studentRepository.findById(Id);
-        //if that student doesn't exist
-        if (!studentOptional.isPresent()) {
+    public void deleteStudent(Long studentId) {
+        boolean exists = studentRepository.existsById(studentId);
+        if (!exists) {
             //should have custom exceptions, but good for now
-            throw new IllegalStateException("No student found for that ID.");
+            throw new IllegalStateException(String.format("No student found for the ID: %d.", studentId));
         }
 
-        studentRepository.deleteById(Id);
+        studentRepository.deleteById(studentId);
+    }
+
+    @Transactional //we don't need to use a query to update a student with @Transactional, the entity basically becomes a manages state
+    public void updateStudent(Long studentId, String name, String email) {
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new IllegalStateException(String.format("No student found for the ID: %d.", studentId)));
+        if (name != null && name.length() > 0 && !name.equals(student.getName())) {
+            student.setName(name);
+        }
+
+        Optional<Student> studentOptional = studentRepository.findByEmail(email);
+        //if someone tries to add a new student with an already taken email
+        if (studentOptional.isPresent()) {
+            //should have custom exceptions, but good for now
+            throw new IllegalStateException("Email taken.");
+        }
+
+        if (email != null && Student.validEmail(email)) {
+            student.setEmail(email);
+        }
+
     }
 }
